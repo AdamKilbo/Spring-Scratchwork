@@ -13,12 +13,15 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-web:2.7.6'
 	implementation 'org.springframework:spring-web:5.3.23'
 	implementation 'org.springframework:spring-context:5.3.23'
 	implementation 'org.springframework.boot:spring-boot:2.7.5'
 	implementation 'org.json:json:20220924'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa:2.7.6'
+	implementation 'com.h2database:h2:2.1.214'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test:2.7.6'
+	testImplementation 'junit:junit:4.13.1'
 }
 
 tasks.named('test') {

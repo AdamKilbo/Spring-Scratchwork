@@ -1,6 +1,10 @@
 package com.example.demo.service;
 
+import com.example.demo.repository.CatFactRepository;
+import com.example.demo.repository.entities.CatFact;
+import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -9,13 +13,18 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 @Service
 public class CatFactService {
-    static String apiUrl = "https://catfact.ninja/fact";
+    static String limit = "5"; // number of cat facts
+    static String apiUrl = "https://catfact.ninja/facts?limit=" + limit;
     static int timeout = 5000;
+
+    @Autowired
+    private CatFactRepository catFactRepository;
 
     private HttpURLConnection setupAPI() throws Exception {
         URL url = new URL(apiUrl);
@@ -58,13 +67,28 @@ public class CatFactService {
         }
     }
 
-    public String getCatFact() {
+    public CatFact getCatFact() {
+        List<CatFact> facts = catFactRepository.findAll();
+        if (facts.size() == 0) {
+            try {
+                facts = fillRepo();
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        catFactRepository.delete(facts.get(0));
+        return facts.get(0);
+    }
+
+    // fills the repo with facts, returns list of them
+    private List<CatFact> fillRepo() throws Exception{
+
         HttpURLConnection con;
         try {
             con = setupAPI();
         } catch (Exception e) {
-            System.out.println("couldn't set up url: " + e);
-            return e.toString();
+            System.out.println("couldn't set up api: " + e);
+            throw e;
         }
 
         try {
@@ -93,13 +117,23 @@ public class CatFactService {
 
             con.disconnect();
 
+            List<CatFact> catFacts = new ArrayList<>();
             JSONObject jsonObj = new JSONObject(content.toString());
-            String catFact = jsonObj.getString("fact");
-            return catFact;
+            JSONArray facts = jsonObj.getJSONArray("data");
+            for (int i = 0; i < facts.length(); i++) {
+                JSONObject obj = facts.getJSONObject(i);
+                String fact = obj.getString("fact");
+                int length = obj.getInt("length");
+
+                catFacts.add(new CatFact(fact, length));
+            }
+            catFactRepository.saveAll(catFacts);
+
+            return catFacts;
 
         } catch (Exception e) {
             System.out.println("some error getting facts: " + e);
-            return e.toString();
+            throw e;
         }
     }
 }

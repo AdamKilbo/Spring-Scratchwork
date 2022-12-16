@@ -62,3 +62,6 @@ hs_err_pid*
 
 #mac
 DS_Store
+
+#hide api key
+application-dev.properties
